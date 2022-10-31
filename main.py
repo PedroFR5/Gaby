@@ -3,6 +3,18 @@
 from vosk import Model, KaldiRecognizer
 import os
 import pyaudio
+import pyttsx3
+import json
+
+# Síntese de fala
+engine = pyttsx3.init()
+
+voices = engine.getProperty('voices')
+engine.setProperty('voice', voices[0].id)
+
+def speak(text):
+    engine.say(text)
+    engine.runAndWait()
 
 # Reconhecimento de fala
 
@@ -10,7 +22,7 @@ model = Model('model')
 rec = KaldiRecognizer(model, 16000)
 
 p = pyaudio.PyAudio()
-stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8000)
+stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=2048)
 stream.start_stream()
 
 # Loop do reconhecimento de fala
@@ -19,10 +31,13 @@ while True:
     if len(data) == 0:
         break
     if rec.AcceptWaveform(data):
-        print(rec.Result())
-    else:
-        print(rec.PartialResult())
+        result = rec.Result()
+        result = json.loads(result)
 
-print(rec.FinalResult())
+        if result is not None:
+            text = result['text']
+
+            print(text)
+            speak(text)
 
             
